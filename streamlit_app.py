@@ -74,10 +74,14 @@ def creer_graphique_amortissement(df_amort, titre):
 # Crée une appli Streamlit pour calculer l'amortissement d'un achat immobilier
 def app():
     st.title("Bien")
-    prix = int(st.number_input("Coût du bien", min_value=0, value=599000))
+    prix = int(st.number_input("Valeur du bien", min_value=0, value=545000))
+    frais = int(st.number_input("Frais", min_value=0, value=int(.11*prix)))
+
     superficie_totale = st.number_input(
         "Superficie totale du bien en m²", min_value=20, value=180
     )
+
+    st.metric("Coût total du projet", prix + frais)
 
     st.title("Emprunt")
     taux = st.slider(
@@ -140,7 +144,7 @@ def app():
     with cols[2]:
         st.write(f"{superficie_chambres}")
 
-    emprunt_total = prix - apport_total
+    emprunt_total = prix + frais - apport_total
     taux_mensuel = taux / 100 / 12
     mensualite_totale = (
         emprunt_total
@@ -158,14 +162,18 @@ def app():
     )
 
     df[["Part", "Emprunt", "Mensualite"]] = None
-    cols = st.columns(4)
+    cols = st.columns(6)
     with cols[0]:
         st.write("**Nom**")
     with cols[1]:
         st.write("**Part détenue**")
     with cols[2]:
-        st.write("**Emprunt**")
+        st.write("**Valeur**")
     with cols[3]:
+        st.write("**Apport**")
+    with cols[4]:
+        st.write("**Emprunt**")
+    with cols[5]:
         st.write("**Mensualité**")
 
     for idx, row in df.iterrows():
