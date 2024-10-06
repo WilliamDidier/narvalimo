@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt
 
 
 st.set_page_config(layout="wide")
@@ -70,6 +71,26 @@ def creer_graphique_amortissement(df_amort, titre):
 
     return fig
 
+def creer_graphique_repartition_chambres(superficie_totale, superficie_chambres, superficie_communs):
+    if superficie_communs < 0:
+        st.error(
+            f"Erreur : La somme des superficies des chambres dépasse la superficie totale du bien : {superficie_chambres} > {superficie_totale}"
+        )
+        return
+
+    # Création de la figure
+    fig, ax = plt.subplots(figsize=(8, 8))
+    
+    # Données pour le pie chart
+    labels = ["Superficie des chambres", "Superficie des parties communes"]
+    values = [superficie_chambres, superficie_communs]
+    
+    # Création du pie chart
+    ax.pie(values, labels=labels, autopct='%1.1f%%')
+    ax.axis('equal')  # Assure que le cercle est rond
+    
+    return fig
+
 
 # Crée une appli Streamlit pour calculer l'amortissement d'un achat immobilier
 def app():
@@ -93,8 +114,8 @@ def app():
     cols = st.columns(3)
     with cols[0]:
         st.write("**Nom**")
-    with cols[1]:
-        st.write("**Apport (€)**")
+    # with cols[1]:
+    #     st.write("**Apport (€)**")
     with cols[2]:
         st.write("**Superficie chambre (m²)**")
 
@@ -103,23 +124,23 @@ def app():
     superficie_communs = superficie_totale - superficie_chambres
 
     for idx, row in df.iterrows():
-        cols = st.columns(3)
+        cols = st.columns([1,1,3])
         nom = row["Nom"]
         superficie_chambre = row["Superficie chambre"]
         with cols[0]:
             st.write(nom)
 
-        with cols[1]:
-            df.loc[idx, "Apport"] = st.slider(
-                f"Apport {nom}",
-                min_value=0,
-                max_value=100000,
-                value=row["Apport"],
-                step=1000,
-                label_visibility="collapsed",
-            )
+        # with cols[1]:
+        #     df.loc[idx, "Apport"] = st.slider(
+        #         f"Apport {nom}",
+        #         min_value=0,
+        #         max_value=100000,
+        #         value=row["Apport"],
+        #         step=1000,
+        #         label_visibility="collapsed",
+        #     )
 
-        with cols[2]:
+        with cols[1]:
             df.loc[idx, "Superficie chambre"] = st.slider(
                 f"Superficie {nom}",
                 min_value=6,
@@ -128,6 +149,10 @@ def app():
                 step=1,
                 label_visibility="collapsed",
             )
+        
+    with cols[2]:
+        fig = creer_graphique_repartition_chambres(superficie_totale, superficie_chambres, superficie_communs)
+        st.pyplot(fig)
 
     apport_total = df["Apport"].sum()
     superficie_chambres = df["Superficie chambre"].sum()
@@ -135,8 +160,8 @@ def app():
     cols = st.columns(3)
     with cols[0]:
         st.write("**Total**")
-    with cols[1]:
-        st.write(f"{apport_total}")
+    # with cols[1]:
+    #     st.write(f"{apport_total}")
     with cols[2]:
         st.write(f"{superficie_chambres}")
 
@@ -261,26 +286,6 @@ def app():
             with st.expander(f"👀 Afficher le tableau d'amortissement de {row['Nom']}"):
                 st.dataframe(df_amort_indiv, hide_index=True)
 
-    # Ajout des sliders pour les superficies des chambres et le nombre d'occupants
-    st.subheader("Répartition des chambres et des communs")
-    if superficie_communs < 0:
-        st.error(
-            f"Erreur : La somme des superficies des chambres dépasse la superficie totale du bien : {superficie_chambres} > {superficie_totale}"
-        )
-        return
-
-    fig = go.Figure(
-        data=[
-            go.Pie(
-                labels=["Superficie des chambres", "Superficie des parties communes"],
-                values=[superficie_chambres, superficie_communs],
-            )
-        ]
-    )
-
-    # Set title and display
-    fig.update_layout(title_text="Superficie des chambres et parties communes")
-    st.plotly_chart(fig)
 
 
 if "page" not in st.session_state:
