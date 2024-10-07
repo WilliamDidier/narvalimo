@@ -98,8 +98,6 @@ def app():
     with cols[0]:
         st.write("**Nom**")
     with cols[1]:
-        st.write("**Apport (€)**")
-    with cols[2]:
         st.write("**Superficie chambre (m²)**")
 
     # Initialisation des variables avec des valeurs par défaut
@@ -107,23 +105,13 @@ def app():
     superficie_communs = superficie_totale - superficie_chambres
 
     for idx, row in df.iterrows():
-        cols = st.columns(3)
+        cols = st.columns(2)
         nom = row["Nom"]
         superficie_chambre = row["Superficie chambre"]
         with cols[0]:
             st.write(nom)
 
         with cols[1]:
-            df.loc[idx, "Apport"] = st.slider(
-                f"Apport {nom}",
-                min_value=0,
-                max_value=100000,
-                value=row["Apport"],
-                step=1000,
-                label_visibility="collapsed",
-            )
-
-        with cols[2]:
             df.loc[idx, "Superficie chambre"] = st.slider(
                 f"Superficie {nom}",
                 min_value=6,
@@ -177,7 +165,7 @@ def app():
         st.write("**Mensualité**")
 
     for idx, row in df.iterrows():
-        cols = st.columns(4)
+        cols = st.columns(6)
         with cols[0]:
             st.write(row["Nom"])
         with cols[1]:
@@ -189,25 +177,37 @@ def app():
             df.loc[idx, "Part"] = part_detenue
             st.write(round(part_detenue, 2))
         with cols[2]:
+            valeur_part = part_detenue * prix
+            st.write(round(valeur_part, 2))
+        with cols[3]:
+            df.loc[idx, "Apport"] = st.slider(
+                f"Apport bite {row['Nom']}",
+                min_value=0,
+                max_value=100000,
+                value=row["Apport"],
+                step=1000,
+                label_visibility="collapsed",
+            )
+        with cols[4]:
             prix_chambre = part_detenue * prix
-            emprunt_perso = prix_chambre - row["Apport"]
+            emprunt_perso = prix_chambre - df.loc[idx, "Apport"]
             df.loc[idx, "Emprunt"] = emprunt_perso
             st.write(round(emprunt_perso, 2))
-        with cols[3]:
+        with cols[5]:
             mensualite = emprunt_perso / emprunt_total * mensualite_totale
             df.loc[idx, "Mensualite"] = mensualite
             st.write(round(mensualite, 2))
 
-    cols = st.columns(4)
+    cols = st.columns(6)
     with cols[0]:
         st.write("**Total**")
     with cols[1]:
         st.write(round(df["Part"].sum(), 2))
-    with cols[2]:
+    with cols[4]:
         st.write(round(df["Emprunt"].sum(), 2))
-    with cols[3]:
+    with cols[5]:
         st.write(round(df["Mensualite"].sum(), 2))
-
+    
     st.download_button(
         label="Télécharger les données",
         data=df.to_csv(index=False).encode("utf-8"),
