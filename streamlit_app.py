@@ -201,6 +201,10 @@ def app():
         st.write("**Total**")
     with cols[1]:
         st.write(round(df["Part"].sum(), 2))
+    with cols[2]:
+        st.write(round(prix, 2))
+    with cols[3]:
+        st.write(round(df["Apport"].sum(), 2))
     with cols[4]:
         st.write(round(df["Emprunt"].sum(), 2))
     with cols[5]:
