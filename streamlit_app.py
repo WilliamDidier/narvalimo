@@ -76,12 +76,13 @@ def app():
     st.title("Bien")
     prix = int(st.number_input("Valeur du bien", min_value=0, value=545000))
     frais = int(st.number_input("Frais", min_value=0, value=int(.11*prix)))
+    cout_global = prix + frais
 
     superficie_totale = st.number_input(
         "Superficie totale du bien en m²", min_value=20, value=180
     )
 
-    st.metric("Coût total du projet", prix + frais)
+    st.metric("Coût total du projet", cout_global)
 
     st.title("Emprunt")
     taux = st.slider(
@@ -132,7 +133,7 @@ def app():
     with cols[2]:
         st.write(f"{superficie_chambres}")
 
-    emprunt_total = prix + frais - apport_total
+    emprunt_total = cout_global - apport_total
     taux_mensuel = taux / 100 / 12
     mensualite_totale = (
         emprunt_total
@@ -189,7 +190,7 @@ def app():
                 label_visibility="collapsed",
             )
         with cols[4]:
-            prix_chambre = part_detenue * prix
+            prix_chambre = part_detenue * cout_global
             emprunt_perso = prix_chambre - df.loc[idx, "Apport"]
             df.loc[idx, "Emprunt"] = emprunt_perso
             st.write(round(emprunt_perso, 2))
