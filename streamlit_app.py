@@ -7,10 +7,6 @@ import plotly.graph_objects as go
 st.set_page_config(layout="wide")
 
 
-HABITANTS = ["Sten", "Ju", "William", "Marie", "Cijee", "Xav", "Poum"]
-SUPERFICIE_CHAMBRE_DEFAULT = 12
-
-
 @st.cache_data
 def get_initial_df() -> pd.DataFrame:
     with open("init.json") as f:
@@ -18,6 +14,7 @@ def get_initial_df() -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
+@st.cache_data
 def calculer_amortissement(emprunt, mensualite, taux_mensuel, duree):
     df = pd.DataFrame(
         columns=["Mois", "Capital restant", "Intérêts", "Capital remboursé"]
@@ -75,7 +72,7 @@ def creer_graphique_amortissement(df_amort, titre):
 def app():
     st.title("Bien")
     prix = int(st.number_input("Valeur du bien", min_value=0, value=545000))
-    frais = int(st.number_input("Frais", min_value=0, value=int(.11*prix)))
+    frais = int(st.number_input("Frais", min_value=0, value=int(0.11 * prix)))
     cout_global = prix + frais
 
     superficie_totale = st.number_input(
@@ -208,7 +205,7 @@ def app():
         st.write(round(df["Emprunt"].sum(), 2))
     with cols[5]:
         st.write(round(df["Mensualite"].sum(), 2))
-    
+
     st.download_button(
         label="Télécharger les données",
         data=df.to_csv(index=False).encode("utf-8"),
