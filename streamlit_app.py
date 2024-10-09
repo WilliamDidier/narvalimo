@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 
 st.set_page_config(layout="wide")
 
+NOMBRE_PARTS = 1000
+
 
 @st.cache_data
 def get_initial_df() -> pd.DataFrame:
@@ -72,7 +74,7 @@ def creer_graphique_amortissement(df_amort, titre):
 def app():
     st.title("Bien")
     prix = int(st.number_input("Valeur du bien", min_value=0, value=545000))
-    frais = int(st.number_input("Frais", min_value=0, value=int(0.11 * prix)))
+    frais = int(st.number_input("Frais", min_value=0, value=int(0.08 * prix)))
     cout_global = prix + frais
 
     superficie_totale = st.number_input(
@@ -144,67 +146,76 @@ def app():
         step=0.01,
     )
 
-    df[["Part", "Emprunt", "Mensualite"]] = None
-    cols = st.columns(6)
+    df[["Parts", "Emprunt", "Mensualite"]] = None
+    cols = st.columns(7)
     with cols[0]:
         st.write("**Nom**")
     with cols[1]:
-        st.write("**Part détenue**")
+        st.write("**Parts détenues**")
     with cols[2]:
         st.write("**Valeur**")
     with cols[3]:
-        st.write("**Apport**")
+        st.write("**Coût**")
     with cols[4]:
-        st.write("**Emprunt**")
+        st.write("**Apport**")
     with cols[5]:
+        st.write("**Emprunt**")
+    with cols[6]:
         st.write("**Mensualité**")
 
     for idx, row in df.iterrows():
-        cols = st.columns(6)
+        cols = st.columns(7)
         with cols[0]:
             st.write(row["Nom"])
         with cols[1]:
-            part_detenue = row[
-                "Superficie chambre"
-            ] / superficie_chambres * poids_chambres + 1 / len(df) * (
-                1 - poids_chambres
-            )
-            df.loc[idx, "Part"] = part_detenue
-            st.write(round(part_detenue, 2))
+            parts_detenues = int(
+                NOMBRE_PARTS * (row[
+                    "Superficie chambre"
+                ] / superficie_chambres * poids_chambres + 1 / len(df) * (
+                    1 - poids_chambres
+                )
+            ))
+            df.loc[idx, "Parts"] = parts_detenues
+            st.write(round(parts_detenues, 2))
         with cols[2]:
-            valeur_part = part_detenue * prix
-            st.write(round(valeur_part, 2))
+            valeur_parts = int(prix * parts_detenues / NOMBRE_PARTS)
+            st.write(round(valeur_parts, 2))
         with cols[3]:
+            cout_parts = int(cout_global * parts_detenues / NOMBRE_PARTS)
+            st.write(round(cout_parts, 2))
+        with cols[4]:
             df.loc[idx, "Apport"] = st.slider(
-                f"Apport bite {row['Nom']}",
+                f"Apport {row['Nom']}",
                 min_value=0,
                 max_value=100000,
                 value=row["Apport"],
                 step=1000,
                 label_visibility="collapsed",
             )
-        with cols[4]:
-            prix_chambre = part_detenue * cout_global
+        with cols[5]:
+            prix_chambre = cout_global * parts_detenues / NOMBRE_PARTS
             emprunt_perso = prix_chambre - df.loc[idx, "Apport"]
             df.loc[idx, "Emprunt"] = emprunt_perso
             st.write(round(emprunt_perso, 2))
-        with cols[5]:
+        with cols[6]:
             mensualite = emprunt_perso / emprunt_total * mensualite_totale
             df.loc[idx, "Mensualite"] = mensualite
             st.write(round(mensualite, 2))
 
-    cols = st.columns(6)
+    cols = st.columns(7)
     with cols[0]:
         st.write("**Total**")
     with cols[1]:
-        st.write(round(df["Part"].sum(), 2))
+        st.write(round(df["Parts"].sum(), 2))
     with cols[2]:
         st.write(round(prix, 2))
     with cols[3]:
-        st.write(round(df["Apport"].sum(), 2))
+        st.write(round(cout_global, 2))
     with cols[4]:
-        st.write(round(df["Emprunt"].sum(), 2))
+        st.write(round(df["Apport"].sum(), 2))
     with cols[5]:
+        st.write(round(df["Emprunt"].sum(), 2))
+    with cols[6]:
         st.write(round(df["Mensualite"].sum(), 2))
 
     st.download_button(
