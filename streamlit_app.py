@@ -92,15 +92,14 @@ def app():
     st.title("Apports & parts")
     df = get_initial_df()
 
-    cols = st.columns(3)
+    superficie_chambres = df["Superficie chambre"].sum()
+    superficie_communs = superficie_totale - superficie_chambres
+
+    cols = st.columns(2)
     with cols[0]:
         st.write("**Nom**")
     with cols[1]:
         st.write("**Superficie chambre (m²)**")
-
-    # Initialisation des variables avec des valeurs par défaut
-    superficie_chambres = df["Superficie chambre"].sum()
-    superficie_communs = superficie_totale - superficie_chambres
 
     for idx, row in df.iterrows():
         cols = st.columns(2)
@@ -122,12 +121,10 @@ def app():
     apport_total = df["Apport"].sum()
     superficie_chambres = df["Superficie chambre"].sum()
 
-    cols = st.columns(3)
+    cols = st.columns(2)
     with cols[0]:
         st.write("**Total**")
     with cols[1]:
-        st.write(f"{apport_total}")
-    with cols[2]:
         st.write(f"{superficie_chambres}")
 
     emprunt_total = cout_global - apport_total
