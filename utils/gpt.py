@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-class Column:
+class TableColumn:
     def __init__(self, name, input_fn=None, footer_fn=None):
         """
         :param name: Name of the column in the dataframe (used for header and data input/output).
@@ -13,7 +13,7 @@ class Column:
         self.footer_fn = footer_fn
 
     def render_header(self, cols, idx):
-        """Render the header for this column."""
+        """Render the header for this column (using the column name)."""
         with cols[idx]:
             st.write(f"**{self.name}**")
     
@@ -39,31 +39,24 @@ class Column:
 class Table:
     def __init__(self, columns):
         """
-        :param columns: A list of Column objects representing the table structure.
+        :param columns: A list of TableColumn objects representing the table structure.
         """
         self.columns = columns
-        self.input_fns = None
-
-    @property
-    def n_cols(self):
-        return len(self.columns)
-    
-    def set_input_functions(self, input_fns):
-        """
-        Set input functions for the table's columns.
-        :param input_fns: A list of input functions corresponding to each column.
-        """
-        assert len(input_fns == self.n_cols)
-        self.input_fns = input_fns
 
     def render(self, df):
-        """Render the entire table sequentially"""
+        """Render the entire table including headers, rows, and footers."""
+        # Render headers
         self.render_headers()
+        
+        # Render rows
         self.render_rows(df)
+        
+        # Render footers
         self.render_footers(df)
 
     def render_headers(self):
-        cols = st.columns(self.n_cols)
+        """Render the headers of the table."""
+        cols = st.columns(len(self.columns))
         for idx, col in enumerate(self.columns):
             col.render_header(cols, idx)
     
@@ -76,46 +69,49 @@ class Table:
     
     def render_footers(self, df):
         """Render the footers of the table."""
-        cols = st.columns(self.n_cols)
+        cols = st.columns(len(self.columns))
         for idx, col in enumerate(self.columns):
             col.render_footer(cols, idx, df)
 
 
 # --- Example Usage in the Streamlit App ---
 
-if __name__=="__main__":
-    # Example data
-    df = pd.DataFrame({
-        "Nom": ["Room A", "Room B"],
-        "Superficie chambre": [15, 18],
-        "Apport": [50000, 60000],
-        "Part": [0, 0],
-        "Emprunt": [0, 0],
-        "Mensualite": [0, 0]
-    })
+# Example data
+df = pd.DataFrame({
+    "Nom": ["Room A", "Room B"],
+    "Superficie chambre": [15, 18],
+    "Apport": [50000, 60000],
+    "Part": [0, 0],
+    "Emprunt": [0, 0],
+    "Mensualite": [0, 0]
+})
 
-    # Constants
-    prix = 300000
-    cout_global = 500000
-    mensualite_totale = 2000
-    poids_chambres = 0.6
+# Constants
+prix = 300000
+cout_global = 500000
+mensualite_totale = 2000
+poids_chambres = 0.6
 
-    # Create table columns
-    table_columns = [
-        Column("Nom"),
-        Column("Superficie chambre",
-                input_fn=lambda val: st.slider("Superficie", min_value=6, max_value=20, value=val, step=1, label_visibility="collapsed"),
-                footer_fn=lambda col: col.sum()),
-        Column("Part"),
-        Column("Apport",
-                input_fn=lambda val: st.slider("Apport", min_value=0, max_value=100000, value=val, step=1000, label_visibility="collapsed"),
-                footer_fn=lambda col: col.sum()),
-        Column("Emprunt", footer_fn=lambda col: col.sum()),
-        Column("Mensualite", footer_fn=lambda col: col.sum()),
-    ]
+# Create table columns
+table_columns = [
+    TableColumn("Nom"),  # No input or footer function needed for this column
+    TableColumn(
+        "Superficie chambre",
+        input_fn=lambda val: st.slider("Superficie", min_value=6, max_value=20, value=val, step=1, label_visibility="collapsed"),
+        footer_fn=lambda col: col.sum()
+    ),
+    TableColumn("Part", footer_fn=None),  # "Part" calculated elsewhere, no input needed
+    TableColumn(
+        "Apport",
+        input_fn=lambda val: st.slider("Apport", min_value=0, max_value=100000, value=val, step=1000, label_visibility="collapsed"),
+        footer_fn=lambda col: col.sum()
+    ),
+    TableColumn("Emprunt", footer_fn=lambda col: col.sum()),
+    TableColumn("Mensualite", footer_fn=lambda col: col.sum()),
+]
 
-    # Create table object
-    table = Table(table_columns)
+# Create table object
+table = Table(table_columns)
 
-    # Render headers
-    table.render(df)
+# Render the entire table with a single call
+table.render(df)

@@ -3,9 +3,10 @@ import pandas as pd
 import json
 import plotly.graph_objects as go
 
+st.set_page_config(layout="wide")
+
 from utils.table import Table, Column
 
-st.set_page_config(layout="wide")
 
 
 @st.cache_data
@@ -96,15 +97,25 @@ def app():
     superficie_chambres = df["Superficie chambre"].sum()
     superficie_communs = superficie_totale - superficie_chambres
 
-    # table = Table([
-    # Column("Nom", "Nom"),
-    # Column("Superficie chambre", "Superficie chambre (m²)", footer_fn=lambda col: col.sum()),
-    # Column("Part", "Part détenue"),
-    # Column("Apport", "Apport", footer_fn=lambda col: col.sum()),
-    # Column("Emprunt", "Emprunt", footer_fn=lambda col: col.sum()),
-    # Column("Mensualite", "Mensualité", footer_fn=lambda col: col.sum()),
-    # ])
+    table = Table(
+        [
+            Column("Nom"),
+            Column(
+                "Superficie chambre",
+                input_fn=lambda val: st.slider("Superficie", min_value=6, max_value=20, value=val, step=1, label_visibility="collapsed"),
+                footer_fn=lambda col: col.sum(),
+            ),
+            Column("Part"),
+            Column("Apport",
+                input_fn=lambda val: st.slider("Superficie", min_value=6, max_value=20, value=val, step=1, label_visibility="collapsed"),
+                footer_fn=lambda col: col.sum()
+            ),
+            Column("Emprunt", footer_fn=lambda col: col.sum()),
+            Column("Mensualite", footer_fn=lambda col: col.sum()),
+        ]
+    )
 
+    table.render(df)
 
     cols = st.columns(2)
     with cols[0]:
